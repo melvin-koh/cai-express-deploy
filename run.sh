@@ -1,7 +1,7 @@
 export NODES="ccycloud-1.mktest.root.comops.site ccycloud-2.mktest.root.comops.site"
 export CLUSTER_NAME="meltest"
-export PAYWALL_USER=8ec37650-d38d-456a-9fcb-6d46fb4a5582
-export PAYWALL_PASSWORD=8aa01791ba9e
+export PAYWALL_USER=XXXX
+export PAYWALL_PASSWORD=XXXXX
 export LICENSE_FILE=/root/license.txt
 
 
