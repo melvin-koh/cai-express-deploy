@@ -54,17 +54,19 @@ export TLS="true"
 export FREE_IPA="false"
 export REALM="FRISCH.COM"
 export ENCRYPTION_ACTIVATED="false"
+export ENCRYPTION_ACTIVATED_NO_KTS="true"
 
 # Versions
 export JDK_VERSION="17"
-export CM_VERSION="7.11.3.14"
-export CDH_VERSION="7.1.9.1010"
-export CSA_VERSION="1.12.0.0"
-export CFM_VERSION="2.1.7.0"
+export CM_VERSION="7.13.1.0"
+export CDH_VERSION="7.3.1.0"
+export CSA_VERSION="1.14.0.0"
+export CFM_VERSION="2.2.9.0"
 export CEM_VERSION="2.2.0.0"
-export SPARK3_VERSION="3.3.7190.0"
-export OBSERVABILITY_VERSION="3.5.2"
-export PVC_VERSION="1.5.4-h2"
+export SPARK3_VERSION="3.3.7191000.3"
+export OBSERVABILITY_VERSION="3.5.3-h1"
+export PVC_VERSION="1.5.4-h15"
+
 export AMBARI_VERSION="2.7.5.0"
 export HDP_VERSION="3.1.5.6091"
 export HDF_VERSION="3.5.2.0"
@@ -144,7 +146,7 @@ export DATAGEN_REPO_URL="https://github.com/frischHWC/datagen"
 export DATAGEN_REPO_BRANCH="main"
 export DATAGEN_REPO_PARCEL=""
 export DATAGEN_CSD_URL=""
-export DATAGEN_VERSION="1.0.0"
+export DATAGEN_VERSION="1.0.1"
 export EDGE_HOST=""
 
 # Demo
@@ -154,6 +156,17 @@ export DEMO_REPO_BRANCH="main"
 # CDH 6 - KTS 
 export CDH6_KTS_PATH="~/Downloads/keytrustee-server-6.1.0-parcels.tar.gz"
 export CDH6_KTS_KMS_PATH="~/Downloads/keytrustee-kms-6.3.0-parcels.tar.gz"
+
+# K8s Operators
+export CFM_OPERATOR_VERSION="2.9.0-b96"
+export CFM_OPERATOR_DEPLOY="false"
+export CFM_OPERATOR_NIFI_DEPLOY="false"
+export CSA_OPERATOR_VERSION="1.2.0-b27"
+export CSA_OPERATOR_DEPLOY="false"
+export CSA_OPERATOR_FLINK_DEPLOY="false"
+export KAFKA_OPERATOR_VERSION="1.3.0-b52"
+export KAFKA_OPERATOR_DEPLOY="false"
+export KAFKA_OPERATOR_KAFKA_DEPLOY="false"
 
 # INTERNAL USAGE OF THESE VARIABLES, do no touch these
 export KTS_SERVERS=""
@@ -173,6 +186,8 @@ export CLUSTER_NAME_STREAMING=""
 export USE_ROOT_CA="false"
 export USE_OUTSIDE_PAYWALL_BUILDS="false"
 export FREE_IPA_TRIES=2
+export PVC_POST_INSTALL="false"
+export DEPLOY_CERT_MANAGER="false"
 # To solve any potential issue with UTF-8
 export ENV='en_US.UTF-8'
 export LC_ALL='en_US.UTF-8'
@@ -333,6 +348,18 @@ function usage()
     echo "  --cdh6-kts-kms-path=$CDH6_KTS_KMS_PATH : (Optional) Path to KTS-KMS tar gz for CDH6 (Default) $CDH6_KTS_KMS_PATH "
     echo ""
     echo "  --edge-host=$EDGE_HOST : (Optional) Node where user creation and data loading will be launched (Default) $EDGE_HOST "
+    echo ""
+    echo "  --cfm-operator-version=$CFM_OPERATOR_VERSION : (Optional) CFM k8s operator version (Default) "
+    echo "  --cfm-operator-deploy=$CFM_OPERATOR_DEPLOY : (Optional) Whether to deploy CFM K8s Operator (Default) "
+    echo "  --cfm-operator-nifi-deploy=$CFM_OPERATOR_NIFI_DEPLOY : (Optional) Whether to deploy Nifi (& nifi registry) using CFM k8s Operator (Default) "
+    echo "  --csa-operator-version=$CSA_OPERATOR_VERSION : (Optional) CSA k8s operator version (Default) "
+    echo "  --csa-operator-deploy=$CSA_OPERATOR_DEPLOY : (Optional) Whether to deploy CSA K8s Operator (Default) "
+    echo "  --csa-operator-flink-deploy=$CSA_OPERATOR_FLINK_DEPLOY : (Optional) Whether to deploy Flink (& SSB) using CSA k8s Operator (Default) "
+    echo "  --kafka-operator-version=$KAFKA_OPERATOR_VERSION : (Optional) Kafka k8s operator version (Default) "
+    echo "  --kafka-operator-deploy=$KAFKA_OPERATOR_DEPLOY : (Optional) Whether to deploy Kafka K8s Operator (Default) "
+    echo "  --kafka-operator-kafka-deploy=$KAFKA_OPERATOR_KAFKA_DEPLOY : (Optional) Whether to deploy Kafka (& Strimzi & Cruise Control) using Kafka k8s Operator (Default) "
+    echo ""
+    echo ""
     echo ""
 }
 
@@ -699,6 +726,33 @@ while [ "$1" != "" ]; do
         --edge-host)
             EDGE_HOST=$VALUE                      
             ;;
+        --cfm-operator-version)
+            CFM_OPERATOR_VERSION=$VALUE
+            ;;
+        --cfm-operator-deploy)
+            CFM_OPERATOR_DEPLOY=$VALUE
+            ;;
+        --cfm-operator-nifi-deploy)
+            CFM_OPERATOR_NIFI_DEPLOY=$VALUE
+            ;;
+        --csa-operator-version)
+            CSA_OPERATOR_VERSION=$VALUE
+            ;;
+        --csa-operator-deploy)
+            CSA_OPERATOR_DEPLOY=$VALUE
+            ;;
+        --csa-operator-flink-deploy)
+            CSA_OPERATOR_FLINK_DEPLOY=$VALUE
+            ;;
+        --kafka-operator-version)
+            KAFKA_OPERATOR_VERSION=$VALUE
+            ;;
+        --kafka-operator-deploy)
+            KAFKA_OPERATOR_DEPLOY=$VALUE
+            ;;
+        --kafka-operator-kafka-deploy)
+            KAFKA_OPERATOR_KAFKA_DEPLOY=$VALUE
+            ;;
         *)
             ;;
     esac
@@ -782,123 +836,188 @@ then
         export USER_CREATION="false"
     elif [ "${CLUSTER_TYPE}" = "basic" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-basic/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-basic/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-basic/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-basic/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-basic/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-basic/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-basic/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-basic/extra_vars.yml"
     elif [ "${CLUSTER_TYPE}" = "basic-enc" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-basic-enc/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-basic-enc/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-basic-enc/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-basic-enc/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-basic-enc/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-basic-enc/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-basic-enc/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-basic-enc/extra_vars.yml"
         export ENCRYPTION_ACTIVATED="true"
     elif [ "${CLUSTER_TYPE}" = "full" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp/extra_vars.yml"
     elif [ "${CLUSTER_TYPE}" = "streaming" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-streaming/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-streaming/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-streaming/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-streaming/extra_vars.yml"
-        export USE_SPARK3="true"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-streaming/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-streaming/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-streaming/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-streaming/extra_vars.yml"
         export USE_CSA="true"
         export USE_CFM="true"
         export CLUSTER_NAME_STREAMING="${CLUSTER_NAME}-stream"
     elif [ "${CLUSTER_TYPE}" = "streaming-with-efm" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-streaming-with-efm/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-streaming-with-efm/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-streaming-with-efm/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-streaming-with-efm/extra_vars.yml"
-        export USE_SPARK3="true"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-streaming-with-efm/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-streaming-with-efm/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-streaming-with-efm/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-streaming-with-efm/extra_vars.yml"
         export USE_CSA="true"
         export USE_CFM="true"
         export USE_CEM="true"
         export CLUSTER_NAME_STREAMING="${CLUSTER_NAME}-stream"
     elif [ "${CLUSTER_TYPE}" = "all-services" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-all-services/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-all-services/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-all-services/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-all-services/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-all-services/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-all-services/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-all-services/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-all-services/extra_vars.yml"
         export USE_CSA="true"
         export USE_CFM="true"
-        export USE_SPARK3="true"
-        export ENCRYPTION_ACTIVATED="true"  
     elif [ "${CLUSTER_TYPE}" = "all-services-pvc-oc" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-all-services-pvc-oc/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-all-services-pvc-oc/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-all-services-pvc-oc/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-all-services-pvc-oc/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-all-services-pvc-oc/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-all-services-pvc-oc/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-all-services-pvc-oc/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-all-services-pvc-oc/extra_vars.yml"
         export USE_CSA="true"
         export USE_CFM="true"
-        export USE_SPARK3="true"
         export PVC="true"
         export FREE_IPA="true"
         export PVC_TYPE="OC"
-        export ENCRYPTION_ACTIVATED="true"  
     elif [ "${CLUSTER_TYPE}" = "all-services-pvc" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-all-services-pvc/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-all-services-pvc/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-all-services-pvc/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-all-services-pvc/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-all-services-pvc/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-all-services-pvc/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-all-services-pvc/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-all-services-pvc/extra_vars.yml"
         export USE_CSA="true"
         export USE_CFM="true"
-        export USE_SPARK3="true"
         export PVC="true"
         export FREE_IPA="true"
         export PVC_TYPE="ECS"
-        export ENCRYPTION_ACTIVATED="true"
     elif [ "${CLUSTER_TYPE}" = "pvc" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-pvc/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-pvc/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-pvc/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-pvc/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-pvc/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-pvc/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-pvc/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-pvc/extra_vars.yml"
         export PVC="true"
         export FREE_IPA="true"
     elif [ "${CLUSTER_TYPE}" = "pvc-oc" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-pvc-oc/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-pvc-oc/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-pvc-oc/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-pvc-oc/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-pvc-oc/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-pvc-oc/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-pvc-oc/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-pvc-oc/extra_vars.yml"
         export PVC="true"
         export PVC_TYPE="OC"
         export FREE_IPA="true"
     elif [ "${CLUSTER_TYPE}" = "observability" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-observability/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-observability/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-observability/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-observability/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-73X/ansible-cdp-observability/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-73X/ansible-cdp-observability/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-73X/ansible-cdp-observability/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-73X/ansible-cdp-observability/extra_vars.yml"
         export USE_OBSERVABILITY="true"
         export USER_CREATION="false"
         export DATA_LOAD="false"
         export FREE_IPA="false"
+    elif [ "${CLUSTER_TYPE}" = "cdp-719" ]
+    then
+        export ANSIBLE_HOST_FILE="ansible-cdp-71X/ansible-cdp-719/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-71X/ansible-cdp-719/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-71X/ansible-cdp-719/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-71X/ansible-cdp-719/extra_vars.yml"
+        export CM_VERSION="7.11.3.26"
+        export CDH_VERSION="7.1.9.1015"
+        export DATAGEN_VERSION="1.0.0"
+        export INSTALL_REPO_URL="https://github.com/frischHWC/cldr-playbook/archive/refs/tags/CDP-7.1.9.zip"
+        export ANSIBLE_REPO_DIR="cldr-playbook-CDP-7.1.9"
+    elif [ "${CLUSTER_TYPE}" = "cdp-all-services-719" ]
+    then
+        export ANSIBLE_HOST_FILE="ansible-cdp-71X/ansible-cdp-all-services-719/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-71X/ansible-cdp-all-services-719/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-71X/ansible-cdp-all-services-719/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-71X/ansible-cdp-all-services-719/extra_vars.yml"
+        export CM_VERSION="7.11.3.26"
+        export CDH_VERSION="7.1.9.1015"
+        export DATAGEN_VERSION="1.0.0"
+        export INSTALL_REPO_URL="https://github.com/frischHWC/cldr-playbook/archive/refs/tags/CDP-7.1.9.zip"
+        export ANSIBLE_REPO_DIR="cldr-playbook-CDP-7.1.9"
+        export USE_CSA="true"
+        export USE_CFM="true"
+        export USE_SPARK3="true"
+        export ENCRYPTION_ACTIVATED="true"  
+    elif [ "${CLUSTER_TYPE}" = "cdp-basic-719" ]
+    then
+        export ANSIBLE_HOST_FILE="ansible-cdp-71X/ansible-cdp-basic-719/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-71X/ansible-cdp-basic-719/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-71X/ansible-cdp-basic-719/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-71X/ansible-cdp-basic-719/extra_vars.yml"
+        export CM_VERSION="7.11.3.26"
+        export CDH_VERSION="7.1.9.1015"
+        export DATAGEN_VERSION="1.0.0"
+        export INSTALL_REPO_URL="https://github.com/frischHWC/cldr-playbook/archive/refs/tags/CDP-7.1.9.zip"
+        export ANSIBLE_REPO_DIR="cldr-playbook-CDP-7.1.9"
+    elif [ "${CLUSTER_TYPE}" = "cdp-pvc-719" ]
+    then
+        export ANSIBLE_HOST_FILE="ansible-cdp-71X/ansible-cdp-pvc-719/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-71X/ansible-cdp-pvc-719/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-71X/ansible-cdp-pvc-719/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-71X/ansible-cdp-pvc-719/extra_vars.yml"
+        export PVC_VERSION="1.5.4-h15"
+        export CM_VERSION="7.13.1.100"
+        export CDH_VERSION="7.1.9.1034"
+        export CFM_VERSION="2.1.7.1000"
+        export CEM_VERSION="2.2.0.0"
+        export CSA_VERSION="1.13.2.0"
+        export DATAGEN_VERSION="1.0.0"
+        export INSTALL_REPO_URL="https://github.com/frischHWC/cldr-playbook/archive/refs/tags/CDP-7.1.9.zip"
+        export ANSIBLE_REPO_DIR="cldr-playbook-CDP-7.1.9"
+        export PVC="true"
+        export FREE_IPA="true"
+    elif [ "${CLUSTER_TYPE}" = "cdp-streaming-719" ]
+    then
+        export ANSIBLE_HOST_FILE="ansible-cdp-71X/ansible-cdp-streaming-719/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-71X/ansible-cdp-streaming-719/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-71X/ansible-cdp-streaming-719/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-71X/ansible-cdp-streaming-719/extra_vars.yml"
+        export CM_VERSION="7.11.3.26"
+        export CDH_VERSION="7.1.9.1015"
+        export CFM_VERSION="2.1.7.1000"
+        export CEM_VERSION="2.2.0.0"
+        export CSA_VERSION="1.13.2.0"
+        export DATAGEN_VERSION="1.0.0" 
+        export INSTALL_REPO_URL="https://github.com/frischHWC/cldr-playbook/archive/refs/tags/CDP-7.1.9.zip"
+        export ANSIBLE_REPO_DIR="cldr-playbook-CDP-7.1.9"
+        export USE_SPARK3="true"
+        export USE_CSA="true"
+        export USE_CFM="true"
+        export CLUSTER_NAME_STREAMING="${CLUSTER_NAME}-stream"
     elif [ "${CLUSTER_TYPE}" = "cdp-717" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdp-717/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdp-717/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-717/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-717/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-cdp-71X/ansible-cdp-717/hosts"
+        export ANSIBLE_ALL_FILE="ansible-cdp-71X/ansible-cdp-717/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdp-71X/ansible-cdp-717/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdp-71X/ansible-cdp-717/extra_vars.yml"
         export CM_VERSION="7.6.7"
         export CDH_VERSION="7.1.7.2026"
+        export DATAGEN_VERSION="0.5.0"
         export INSTALL_REPO_URL="https://github.com/frischHWC/cldr-playbook/archive/refs/tags/CDP-7.1.7.zip"
         export ANSIBLE_REPO_DIR="cldr-playbook-CDP-7.1.7"
     elif [ "${CLUSTER_TYPE}" = "cdh6" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdh-6/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdh-6/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdh-6/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdh-6/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-legacy/ansible-cdh-6/hosts"
+        export ANSIBLE_ALL_FILE="ansible-legacy/ansible-cdh-6/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-legacy/ansible-cdh-6/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-legacy/ansible-cdh-6/extra_vars.yml"
         export DISTRIBUTION_TO_DEPLOY="CDH"
         export CM_VERSION="6.3.4"
         export CDH_VERSION="6.3.4"
@@ -909,10 +1028,10 @@ then
         export ANSIBLE_REPO_DIR="cldr-playbook-CDP-7.1.7"
     elif [ "${CLUSTER_TYPE}" = "cdh6-enc-stream" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdh6-enc-stream/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdh6-enc-stream/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdh6-enc-stream/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdh6-enc-stream/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-legacy/ansible-cdh6-enc-stream/hosts"
+        export ANSIBLE_ALL_FILE="ansible-legacy/ansible-cdh6-enc-stream/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-legacy/ansible-cdh6-enc-stream/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-legacy/ansible-cdh6-enc-stream/extra_vars.yml"
         export DISTRIBUTION_TO_DEPLOY="CDH"
         export CM_VERSION="6.3.4"
         export CDH_VERSION="6.3.4"
@@ -924,10 +1043,10 @@ then
         export ANSIBLE_REPO_DIR="cldr-playbook-CDP-7.1.7"
     elif [ "${CLUSTER_TYPE}" = "cdh5" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-cdh-5/hosts"
-        export ANSIBLE_ALL_FILE="ansible-cdh-5/all"
-        export ANSIBLE_CLUSTER_YML_FILE="ansible-cdh-5/cluster.yml"
-        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-cdh-5/extra_vars.yml"
+        export ANSIBLE_HOST_FILE="ansible-legacy/ansible-cdh-5/hosts"
+        export ANSIBLE_ALL_FILE="ansible-legacy/ansible-cdh-5/all"
+        export ANSIBLE_CLUSTER_YML_FILE="ansible-legacy/ansible-cdh-5/cluster.yml"
+        export ANSIBLE_EXTRA_VARS_YML_FILE="ansible-legacy/ansible-cdh-5/extra_vars.yml"
         export DISTRIBUTION_TO_DEPLOY="CDH"
         export CM_VERSION="5.16.2"
         export CDH_VERSION="5.16"
@@ -940,8 +1059,8 @@ then
         export ANSIBLE_REPO_DIR="cldr-playbook-CDP-7.1.7"
     elif [ "${CLUSTER_TYPE}" = "hdp2" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-hdp-2/hosts"
-        export ANSIBLE_ALL_FILE="ansible-hdp-2/all"
+        export ANSIBLE_HOST_FILE="ansible-legacy/ansible-hdp-2/hosts"
+        export ANSIBLE_ALL_FILE="ansible-legacy/ansible-hdp-2/all"
         export DISTRIBUTION_TO_DEPLOY="HDP"
         export AMBARI_VERSION="2.6.2.2"
         export HDP_VERSION="2.6.5.0"
@@ -954,8 +1073,8 @@ then
         export DATABASE_TYPE="mysql"
     elif [ "${CLUSTER_TYPE}" = "hdp3" ]
     then
-        export ANSIBLE_HOST_FILE="ansible-hdp-3/hosts"
-        export ANSIBLE_ALL_FILE="ansible-hdp-3/all"
+        export ANSIBLE_HOST_FILE="ansible-legacy/ansible-hdp-3/hosts"
+        export ANSIBLE_ALL_FILE="ansible-legacy/ansible-hdp-3/all"
         export DISTRIBUTION_TO_DEPLOY="HDP"
         export INSTALL_REPO_URL="https://github.com/frischHWC/ansible-hortonworks/archive/refs/heads/master.zip"
         export ANSIBLE_REPO_DIR="ansible-hortonworks-master"
@@ -1003,6 +1122,12 @@ then
         export CDH_REPO="https://archive.cloudera.com/p/cdh${CDH_VERSION:0:1}/parcels/${CDH_VERSION}/"
     else    
         export CDH_REPO="https://archive.cloudera.com/p/cdh${CDH_VERSION:0:1}/${CDH_VERSION}/parcels/"
+
+        # Starting from CM 7.3, URLs changed to cm-public
+        if [ "${CDH_VERSION:0:1}" = "7" ] && [ "${CDH_VERSION:2:3}" = "3" ]
+        then
+            export CDH_REPO="https://archive.cloudera.com/p/cdp-public/${CDH_VERSION}/parcels/"
+        fi
     fi
 fi
 
@@ -1014,10 +1139,10 @@ then
     else    
         export CM_REPO="https://archive.cloudera.com/p/cm${CM_VERSION:0:1}/${CM_VERSION}/${OS_BY_CLDR}${OS_VERSION:0:1}/${OS_INSTALLER_BY_CLDR}"
         
-        # Starting from CM 7.11.3.3, patch are behind a /patch URL
-        if [ "${CM_VERSION}" = "7.11.3.3" ]
-        then 
-            export CM_REPO="https://archive.cloudera.com/p/cm${CM_VERSION:0:1}/patch/${CM_VERSION}-47960007/${OS_BY_CLDR}${OS_VERSION:0:1}/${OS_INSTALLER_BY_CLDR}"
+        # Starting from CM 7.13, URLs changed to cm-public
+        if [ "${CM_VERSION:0:1}" = "7" ] && [ "${CM_VERSION:2:4}" = "13" ]
+        then
+            export CM_REPO="https://archive.cloudera.com/p/cm-public/${CM_VERSION}/${OS_BY_CLDR}${OS_VERSION:0:1}/${OS_INSTALLER_BY_CLDR}"
         fi
     fi
 fi
@@ -1162,7 +1287,13 @@ fi
 if [ "${DATAGEN_AS_A_SERVICE}" = "false" ] && [ -z "${DATAGEN_REPO_URL}" ]
 then
     export DATAGEN_REPO_URL="https://github.com/frischHWC/random-datagen"
-fi    
+fi
+
+if [ "${CFM_OPERATOR_DEPLOY}" = "true" ] || [ "${CSA_OPERATOR_DEPLOY}" = "true" ] || [ "${KAFKA_OPERATOR_DEPLOY}" = "true" ]
+then
+    export PVC_POST_INSTALL="true"
+    export DEPLOY_CERT_MANAGER="true"
+fi
 
 ###############################
 # Setup of files to interact with the cluster
@@ -1575,7 +1706,7 @@ then
         launch_playbook verify_inventory_and_definition "Cluster Definition Verified" "Could not Verify Cluster Definition" 12 120 0 "true"
 
         logger info "###### #bold:Applying nodes pre-requisites#end_bold ######"
-        launch_playbook prepare_nodes "Pre-Requisites Applied" "Could not apply pre-requisites for nodes" 900 1200 2 true
+        launch_playbook prepare_nodes "Pre-Requisites Applied" "Could not apply pre-requisites for nodes" 1200 1800 2 true
 
         logger info "###### #bold:Installation of DB, (KDC, HA-Proxy, CA Server)#end_bold  ######"
         launch_playbook create_infrastructure "Database Installed" "Could not create DB, KDC and HA Proxy" 600 1200 2 true
@@ -1724,6 +1855,17 @@ then
     ./cdp_demo.sh --cluster-name=${CLUSTER_NAME} --cm-host=${NODE_0} --edge-host=${EDGE_HOST} --ipa-server=${NODE_IPA} --ssh-key=${NODE_KEY} --ssh-password=${NODE_PASSWORD} --debug=${DEBUG} --use-ipa=${FREE_IPA} --ipa-password=${DEFAULT_PASSWORD}
     cd $CURRENT_DIR
 fi
+
+if [ "${PVC}" = "true" ] && [ "${PVC_POST_INSTALL}" = "true" ]
+then
+    logger info "############ #bold:Prerequisites for k8s Operator#end_bold ############" 
+    # Little trick because kubernetes packages requires a specific version of python (3.11) with python packages installed
+    #launch_playbook pvc_post_install_prereqs "PvC Post Installation Prereqs Done" "Could not install python and kubernetes packages" 120 480 0 false
+    export ANSIBLE_PYTHON_3_PARAMS="-e ansible_python_interpreter=/usr/bin/python3.11"
+    logger info "############ #bold:Adding k8s Operator to Kubernetes cluster#end_bold ############" 
+    launch_playbook pvc_post_install "PvC Post Installation Done" "Could not add operators and deployments to PVC" 3600 5400 0 false
+fi
+
 
 ###############################
 # Clean up and end

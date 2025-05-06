@@ -16,8 +16,8 @@ image:images/one-script-all.gif[Example of a basic launch]
 
 | &#10003;
 | basic
-| CDP 7.1.9.14 & CM 7.11.3.9
-| RHEL 8.8
+| CDP 7.3.1.0 & CM 7.13.1.0
+| RHEL 8.10
 | Postgres 14
 | MIT KDC
 | True
@@ -25,8 +25,8 @@ image:images/one-script-all.gif[Example of a basic launch]
 
 | &#10003;
 | full
-| CDP 7.1.9.14 & CM 7.11.3.9
-| RHEL 8.8
+| CDP 7.3.1.0 & CM 7.13.1.0
+| RHEL 8.10
 | Postgres 14
 | MIT KDC
 | True
@@ -34,8 +34,8 @@ image:images/one-script-all.gif[Example of a basic launch]
 
 | &#10003;
 | all-services
-| CDP 7.1.9.14 & CM 7.11.3.9
-| RHEL 8.8
+| CDP 7.3.1.0 & CM 7.13.1.0 & CFM 2.2.9.0 & CSA 1.14.0.0
+| RHEL 8.10
 | Postgres 14
 | MIT KDC
 | True
@@ -43,30 +43,31 @@ image:images/one-script-all.gif[Example of a basic launch]
 
 | &#10003;
 | streaming
-| CDP 7.1.9.4 & CM 7.11.3.6 & CFM 2.1.7
-| RHEL 8.8
+| CDP 7.3.1.0 & CM 7.13.1.0 & CFM 2.2.9.0 & CSA 1.14.0.0
+| RHEL 8.10
 | Postgres 14
 | MIT KDC
 | True
 | 
 
 | &#10003;
-| cdp-streaming-with-efm
-| CDP 7.1.9.4 & CM 7.11.3.6 & CFM 2.1.7 & EFM 2.1.2
-| RHEL 8.8
+| streaming-with-efm
+| CDP 7.3.1.0 & CM 7.13.1.0 & CFM 2.2.9.0 & EFM 2.2.99.0 & CSA 1.14.0.0
+| RHEL 8.10
 | Postgres 14
 | MIT KDC
 | True
 | 
 
 | &#10003;
-| cdp-observability
-| CDP 7.1.9.14 & CM 7.11.3.9 & Observability 3.4.4
-| RHEL 8.8
+| observability
+| CDP 7.3.1.0 & CM 7.13.1.0 & Observability 3.5.3
+| RHEL 8.10
 | Postgres 14
 | MIT KDC
 | True
-| 
+|
+
 
 | 
 | 
@@ -77,18 +78,18 @@ image:images/one-script-all.gif[Example of a basic launch]
 | 
 | 
 
-| &#10003;
+| 
 | pvc
-| CDP 7.1.9.14 & CM 7.11.3.9 & PvC 1.5.4
+| CDP 7.3.1.0 & CM 7.13.1.0 & PvC 1.5.4
 | RHEL 8.8
 | Postgres 14
 | Free IPA
 | True
 | 
 
-| &#10003;
+| 
 | all-services-pvc
-| CDP 7.1.9.14 & CM 7.11.3.9 & PvC 1.5.4
+| CDP 7.3.1.0 & CM 7.13.1.0 & PvC 1.5.4
 | RHEL 8.8
 | Postgres 14
 | Free IPA
@@ -106,7 +107,7 @@ image:images/one-script-all.gif[Example of a basic launch]
 
 | 
 | pvc-oc
-| CDH 7.1.9.14 & CM 7.11.3.9 & PvC 1.5.4
+| CDP 7.3.1.0 & CM 7.13.1.0 & PvC 1.5.4
 | CENTOS 7.9
 | Postgres 14
 | Free IPA
@@ -115,7 +116,7 @@ image:images/one-script-all.gif[Example of a basic launch]
 
 | 
 | all-services-pvc-oc
-| CDH 7.1.9.14 & CM 7.11.3.9 & PvC 1.5.4
+| CDP 7.3.1.0 & CM 7.13.1.0 & PvC 1.5.4
 | CENTOS 7.9
 | Postgres 14
 | Free IPA
@@ -176,6 +177,52 @@ image:images/one-script-all.gif[Example of a basic launch]
 | 
 | 
 | 
+
+| &#10003;
+| cdp-719
+| CDP 7.1.9.1015 & CM 7.11.3.26
+| RHEL 8.10
+| Postgres 14
+| MIT KDC
+| True
+| 
+
+| &#10003;
+| cdp-719-basic
+| CDP 7.1.9.1015 & CM 7.11.3.26
+| RHEL 8.10
+| Postgres 14
+| MIT KDC
+| True
+| 
+
+| &#10003;
+| cdp-719-all-services
+| CDP 7.1.9.1015 & CM 7.11.3.26
+| RHEL 8.10
+| Postgres 14
+| MIT KDC
+| True
+| 
+
+| &#10003;
+| cdp-719-streaming
+| CDP 7.1.9.1015 & CM 7.11.3.26 & CFM 2.1.7.1000
+| RHEL 8.10
+| Postgres 14
+| MIT KDC
+| True
+| 
+
+| &#10003;
+| cdp-719-pvc
+| CDP 7.1.9.1015 & CM 7.11.3.26 & PvC 1.5.4
+| RHEL 8.8
+| Postgres 14
+| Free IPA
+| True
+| Use --os-version=8.8
+
 
 | &#10003;
 | cdp-717
